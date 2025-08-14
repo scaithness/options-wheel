@@ -1,0 +1,30 @@
+`yaml
+name: Run Options Wheel Strategy
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 0   *'  # Daily at midnight UTC
+
+jobs:
+  run-strategy:
+    runs-on: ubuntu-latest
+    env:
+      APCAAPIKEYID: ${{ secrets.APCAAPIKEYID }}
+      APCAAPISECRETKEY: ${{ secrets.APCAAPISECRETKEY }}
+      APCAAPIBASE_URL: https://paper-api.alpaca.markets
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run strategy
+        run: python main.py
+`
