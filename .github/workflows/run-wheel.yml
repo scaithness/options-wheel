@@ -1,30 +1,43 @@
-`yaml
 name: Run Options Wheel Strategy
 
 on:
   workflow_dispatch:  # Manual trigger
   schedule:
-    - cron: '0 0   *'  # Daily at midnight UTC
+    - cron: '0 0 * * *'  # Daily at midnight UTC
 
 jobs:
   run-strategy:
     runs-on: ubuntu-latest
+
     env:
-      APCAAPIKEYID: ${{ secrets.APCAAPIKEYID }}
-      APCAAPISECRETKEY: ${{ secrets.APCAAPISECRETKEY }}
-      APCAAPIBASE_URL: https://paper-api.alpaca.markets
+      ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+      ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      APCA_API_BASE_URL: https://paper-api.alpaca.markets
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+      - name: Install uv (Python package manager)
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install dependencies with uv
+        run: uv pip install -e .
 
       - name: Run strategy
-        run: python run_strategy.py
-`
+        run: |
+          run-strategy --fresh-start --strat-log --log-level DEBUG --log-to-file
+
+      - name: Upload strategy log
+        uses: actions/upload-artifact@v3
+        with:
+          name: strategy-log
+          path: logs/strategy.log
+
+      - name: Upload graph (if generated)
+        uses: actions/upload-artifact@v3
+        with:
+          name: strategy-graph
+          path: output.png
