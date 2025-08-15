@@ -34,9 +34,6 @@ jobs:
       - name: Run strategy
         run: |
           source .venv/bin/activate
-          export ALPACA_API_KEY=${{ secrets.ALPACA_API_KEY }}
-          export ALPACA_SECRET_KEY=${{ secrets.ALPACA_SECRET_KEY }}
-          export APCA_API_BASE_URL=https://paper-api.alpaca.markets
           run-strategy --fresh-start --strat-log --log-level DEBUG --log-to-file
 
       - name: Upload strategy log
@@ -53,7 +50,10 @@ jobs:
           if-no-files-found: ignore
 
       - name: 📬 Email strategy log
-        run: python scripts/email_log_summary.py
+        continue-on-error: true
+        run: |
+          source .venv/bin/activate
+          python scripts/email_log_summary.py
         env:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
