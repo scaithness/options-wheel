@@ -1,13 +1,16 @@
 name: Run Options Wheel Strategy
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'  # Daily at midnight UTC
 
 jobs:
   run-strategy:
     runs-on: ubuntu-latest
+
+    outputs:
+      strategy_status: ${{ steps.run.outputs.status }}
 
     env:
       ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
@@ -18,7 +21,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install uv (Python package manager)
+      - name: Install uv
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
@@ -32,9 +35,10 @@ jobs:
           uv pip install -e .
 
       - name: Run strategy
+        id: run
         run: |
           source .venv/bin/activate
-          run-strategy --fresh-start --strat-log --log-level DEBUG --log-to-file
+          run-strategy --fresh-start --strat-log --log-level DEBUG --log-to-file || echo "::set-output name=status::failed"
 
       - name: Upload strategy log
         uses: actions/upload-artifact@v4
@@ -49,11 +53,22 @@ jobs:
           path: output.png
           if-no-files-found: ignore
 
-      - name: 📬 Email strategy log
-        continue-on-error: true
-        run: |
-          source .venv/bin/activate
-          python scripts/email_log_summary.py
+  send-email:
+    needs: run-strategy
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Send strategy log email
+        run: python scripts/email_log_summary.py
         env:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
