@@ -4,12 +4,10 @@ from email.mime.multipart import MIMEMultipart
 import os
 import sys
 
-
-LOG_PATH = "logs/run.log"  # ✅ matches your actual log file
-print(f"📄 Looking for log at: {LOG_PATH}")
+LOG_PATH = "logs/run.log"  # ✅ Matches your actual log file
 
 def send_email():
-    print("📬 Preparing to send email...")
+    print(f"📄 Looking for log at: {LOG_PATH}")
 
     sender = os.getenv("EMAIL_SENDER")
     recipient = os.getenv("EMAIL_RECIPIENT")
@@ -19,12 +17,12 @@ def send_email():
         print("❌ Missing email credentials.")
         sys.exit(1)
 
-    try:
+    if not os.path.exists(LOG_PATH):
+        print("❌ Log file not found.")
+        log_content = "⚠️ Strategy log file was not found. The strategy may have failed before logging."
+    else:
         with open(LOG_PATH, "r") as f:
             log_content = f.read()
-    except FileNotFoundError:
-        print(f"❌ Log file not found at {LOG_PATH}.")
-        log_content = "⚠️ Strategy log file was not found. The strategy may have failed before logging."
 
     msg = MIMEMultipart()
     msg["From"] = sender
