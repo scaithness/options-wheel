@@ -24,7 +24,7 @@ jobs:
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install dependencies with uv
-        run: uv pip install -e .
+        run: uv pip install -e . --system
 
       - name: Run strategy
         run: |
@@ -41,3 +41,4 @@ jobs:
         with:
           name: strategy-graph
           path: output.png
+          if-no-files-found: ignore
