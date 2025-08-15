@@ -54,28 +54,29 @@ jobs:
           if-no-files-found: ignore
 
 send-email:
-    name: 📬 Send Email Summary
-    runs-on: ubuntu-latest
-    needs: run-strategy
+  name: 📬 Send Email Summary
+  runs-on: ubuntu-latest
+  needs: run-strategy
+  if: always()  # ✅ Ensures this job runs even if run-strategy fails
 
-    steps:
-      - name: ⬇️ Download log artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: strategy-log
-          path: logs
+  steps:
+    - name: ⬇️ Download log artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: strategy-log
+        path: logs
 
-      - name: 🐍 Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
 
-      - name: 📦 Install dependencies
-        run: pip install --upgrade pip
+    - name: 📦 Install dependencies
+      run: pip install --upgrade pip
 
-      - name: 📬 Send log summary email
-        env:
-          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-          EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
-          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
-        run: python scripts/email_log_summary.py
+    - name: 📬 Send log summary email
+      env:
+        EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+        EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+        EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+      run: python scripts/email_log_summary.py
