@@ -7,20 +7,34 @@ from config.params import MAX_RISK
 from logging.strategy_logger import StrategyLogger
 from logging.logger_setup import setup_logger
 from core.cli_args import parse_args
+import logging
+import sys
 
 def main():
     args = parse_args()
-    
-    # Initialize two separate loggers
-    strat_logger = StrategyLogger(enabled=args.strat_log)  # custom JSON logger used to persist strategy-specific state (e.g. trades, symbols, PnL).
-    logger = setup_logger(level=args.log_level, to_file=args.log_to_file) # standard Python logger used for general runtime messages, debugging, and error reporting.
 
+    # ✅ Initialize general logger early to ensure log file is created
+    logger = setup_logger(level=args.log_level, to_file=args.log_to_file)
+    logger.addHandler(logging.StreamHandler(sys.stdout))  # Log to console too
+    logger.info("🚀 Strategy execution started.")
+
+    # ✅ Initialize strategy-specific logger
+    strat_logger = StrategyLogger(enabled=args.strat_log)
     strat_logger.set_fresh_start(args.fresh_start)
 
+    # ✅ Load symbols
     SYMBOLS_FILE = Path(__file__).parent.parent / "config" / "symbol_list.txt"
-    with open(SYMBOLS_FILE, 'r') as file:
-        SYMBOLS = [line.strip() for line in file.readlines()]
+    if not SYMBOLS_FILE.exists():
+        logger.error(f"Symbol list file not found at {SYMBOLS_FILE}")
+        return
 
+    with open(SYMBOLS_FILE, 'r') as file:
+        SYMBOLS = [line.strip() for line in file.readlines() if line.strip()]
+    if not SYMBOLS:
+        logger.warning("No symbols found in symbol_list.txt.")
+        return
+
+    # ✅ Initialize broker client
     client = BrokerClient(api_key=ALPACA_API_KEY, secret_key=ALPACA_SECRET_KEY, paper=IS_PAPER)
 
     if args.fresh_start:
@@ -33,7 +47,6 @@ def main():
         strat_logger.add_current_positions(positions)
 
         current_risk = calculate_risk(positions)
-        
         states = update_state(positions)
         strat_logger.add_state_dict(states)
 
@@ -43,14 +56,17 @@ def main():
 
         allowed_symbols = list(set(SYMBOLS).difference(states.keys()))
         buying_power = MAX_RISK - current_risk
-    
+
     strat_logger.set_buying_power(buying_power)
     strat_logger.set_allowed_symbols(allowed_symbols)
 
-    logger.info(f"Current buying power is ${buying_power}")
+    logger.info(f"📊 Current buying power: ${buying_power}")
+    logger.info(f"📈 Allowed symbols: {allowed_symbols}")
+
     sell_puts(client, allowed_symbols, buying_power, strat_logger)
 
-    strat_logger.save()    
+    strat_logger.save()
+    logger.info("✅ Strategy execution completed.")
 
 if __name__ == "__main__":
     main()
