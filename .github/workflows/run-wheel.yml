@@ -53,23 +53,29 @@ jobs:
           path: output.png
           if-no-files-found: ignore
 
-  send-email:
-    needs: run-strategy
+send-email:
+    name: 📬 Send Email Summary
     runs-on: ubuntu-latest
-    if: always()
+    needs: run-strategy
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - name: ⬇️ Download log artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: strategy-log
+          path: logs
 
-      - name: Install Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.11"
 
-      - name: Send strategy log email
-        run: python scripts/email_log_summary.py
+      - name: 📦 Install dependencies
+        run: pip install --upgrade pip
+
+      - name: 📬 Send log summary email
         env:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
           EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+        run: python scripts/email_log_summary.py
