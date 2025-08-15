@@ -4,7 +4,7 @@ from email.mime.multipart import MIMEMultipart
 import os
 import sys
 
-LOG_PATH = "logs/strategy.log"  # Adjust if your log file is elsewhere
+LOG_PATH = "logs/run.log"  # Adjust if your log file is elsewhere
 
 def send_email():
     print("📬 Preparing to send email...")
