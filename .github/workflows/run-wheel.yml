@@ -55,6 +55,6 @@ jobs:
       - name: 📬 Email strategy log
         run: python scripts/email_log_summary.py
         env:
-    EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-    EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
-    EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
