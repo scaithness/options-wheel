@@ -60,7 +60,7 @@ jobs:
     if: always()
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repo  # ✅ Required to access email_log_summary.py
         uses: actions/checkout@v4
 
       - name: ⬇️ Download log artifact
@@ -69,27 +69,17 @@ jobs:
           name: strategy-log
           path: logs
 
-      - name: ⬇️ Download graph artifact (optional)
-        uses: actions/download-artifact@v4
-        with:
-          name: strategy-graph
-          path: .
-          if-no-files-found: ignore
-
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: 📦 Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install smtplib email-validator  # Optional: pin if needed
+        run: pip install --upgrade pip
 
       - name: 📬 Send log summary email
         env:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
           EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
-          STRATEGY_STATUS: ${{ needs.run-strategy.outputs.strategy_status }}
         run: python scripts/email_log_summary.py
