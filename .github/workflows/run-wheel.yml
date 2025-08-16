@@ -3,7 +3,7 @@ name: Run Options Wheel Strategy
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'  # Daily at midnight UTC
+    - cron: '40 2 * * *'  # Daily UTC
 
 jobs:
   run-strategy:
