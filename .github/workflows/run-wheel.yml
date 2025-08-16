@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: strategy-log
-          path: logs/run.log  # ✅ Required input added
+          path: logs/run.log
 
       - name: Upload graph (if generated)
         uses: actions/upload-artifact@v4
@@ -60,6 +60,9 @@ jobs:
     if: always()
 
     steps:
+      - name: Checkout repo  # ✅ Required to access email_log_summary.py
+        uses: actions/checkout@v4
+
       - name: ⬇️ Download log artifact
         uses: actions/download-artifact@v4
         with:
